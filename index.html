@@ -126,6 +126,42 @@
   .stage.opening .env-text, .stage.opening .hint { opacity: 0; animation: none; }
   .stage.leaving .env-body { transform: translateY(108%); }
 
+  /* ---------- Language picker (shown over the sealed envelope) ---------- */
+  .lang {
+    position: fixed; inset: 0; z-index: 30;
+    display: grid; place-items: center; padding: 1.5rem;
+    background: rgba(122, 34, 72, .14);
+    transition: opacity .45s ease, visibility 0s linear .45s;
+  }
+  .lang.done { opacity: 0; visibility: hidden; }
+  .lang-card {
+    width: 100%; max-width: 21rem;
+    padding: 2.25rem 1.5rem 2rem;
+    text-align: center;
+    background: var(--pearl);
+    border-radius: 1.5rem;
+    box-shadow: 0 0 0 1px var(--gold-soft), 0 0 0 .55rem var(--pearl), 0 0 0 calc(.55rem + 1px) var(--gold-soft), 0 2rem 3rem rgba(122, 34, 72, .3);
+    transition: transform .45s cubic-bezier(.2, .7, .2, 1);
+  }
+  .lang.done .lang-card { transform: translateY(1rem) scale(.97); }
+  .lang-title { margin: 0 0 1.5rem; font-weight: 400; line-height: 1.2; }
+  .lang-title .sw-line { display: block; font-family: var(--script); font-size: 2.7rem; line-height: 1.15; color: var(--rosewood); }
+  .lang-title .en-line { display: block; margin-top: .2rem; font-style: italic; font-size: 1.15rem; color: var(--peony); }
+  .lang-options { display: grid; gap: .75rem; }
+  .lang-options button {
+    padding: .75rem 1rem;
+    font: 600 1.2rem var(--serif); color: var(--rosewood);
+    background: var(--blush);
+    border: 1px solid var(--peony); border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, transform .15s ease;
+  }
+  @media (hover: hover) { .lang-options button:hover { background: var(--peony); color: #fff; } }
+  .lang-options button:active { transform: scale(.97); }
+  .lang-options button:focus-visible { outline: 3px solid var(--rosewood); outline-offset: 3px; }
+  body.choosing .env-text, body.choosing .hint { opacity: 0; animation: none; }
+  html[lang="en"] .env-text .invited { font-size: clamp(2.6rem, 12.5vw, 4rem); }
+
   /* ---------- Hero: through the arch ---------- */
   .hero {
     position: relative; height: 100vh; height: 100dvh; min-height: 34rem;
@@ -295,20 +331,34 @@
     .petals { display: none; }
     .hint { animation: none; }
     .rays, .cue::after { animation: none; }
-    .env-body, .flap-wrap, .seal, .vista, .title, .wall, .cue { transition-duration: .01s !important; transition-delay: 0s !important; }
+    .lang, .lang-card, .env-body, .flap-wrap, .seal, .vista, .title, .wall, .cue { transition-duration: .01s !important; transition-delay: 0s !important; }
   }
 </style>
 </head>
-<body class="locked">
+<body class="locked choosing">
+
+<!-- First: the guest picks a language, then opens the envelope -->
+<div class="lang" id="lang" role="dialog" aria-modal="true" aria-labelledby="langTitle">
+  <div class="lang-card">
+    <h2 class="lang-title" id="langTitle">
+      <span class="sw-line" lang="sw">Chagua lugha</span>
+      <span class="en-line" lang="en">Choose your language</span>
+    </h2>
+    <div class="lang-options">
+      <button type="button" data-lang="sw" lang="sw">Kiswahili</button>
+      <button type="button" data-lang="en" lang="en">English</button>
+    </div>
+  </div>
+</div>
 
 <!-- Opening scene: tap the sealed envelope -->
-<button class="stage" id="stage" type="button" aria-label="Fungua mwaliko">
+<button class="stage" id="stage" type="button" aria-label="Fungua mwaliko" data-i18n-label="open" inert>
   <span class="env-body">
     <span class="env-text">
-      <span class="to" id="greeting" hidden>Mpendwa <span id="guest"></span>,</span>
-      <span class="invited">Umealikwa</span>
+      <span class="to" id="greeting" hidden><span data-i18n="dear">Mpendwa</span> <span id="guest"></span>,</span>
+      <span class="invited" data-i18n="invited">Umealikwa</span>
     </span>
-    <span class="hint">Gusa kufungua</span>
+    <span class="hint" data-i18n="tap">Gusa kufungua</span>
   </span>
   <span class="flap-wrap"><span class="env-flap"></span></span>
   <span class="seal"><span>A&amp;C</span></span>
@@ -355,8 +405,8 @@
       </svg>
     </div>
     <div class="title">
-      <p class="what">Kipaimara cha</p>
-      <h1>Abigail <small>na</small> Charisa</h1>
+      <p class="what" data-i18n="what">Kipaimara cha</p>
+      <h1>Abigail <small data-i18n="and">na</small> Charisa</h1>
       <p class="date pending" id="date">6 Desemba 2026</p>
     </div>
     <svg class="wall" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -364,7 +414,7 @@
       <path fill="none" stroke="#e6cf9a" stroke-width=".9" d="M11.5 180.5 V66 A38.5 38.5 0 0 1 88.5 66 V180.5Z"/>
       <path fill="none" stroke="#c39a45" stroke-width=".5" d="M14 178 V66 A36 36 0 0 1 86 66 V178Z"/>
     </svg>
-    <p class="cue">Telezesha chini</p>
+    <p class="cue" data-i18n="scroll">Telezesha chini</p>
   </header>
 
   <article class="card">
@@ -375,13 +425,13 @@
       <path d="M60 30v60M44 48h32" stroke="#c39a45" stroke-width="3.2" stroke-linecap="round" fill="none"/>
     </svg>
 
-    <p class="lead">Familia ya <strong>Bw. na Bi. Abyudi Kissai</strong> wa Mbezi Mpiji wana furaha kukualika katika</p>
-    <h2 class="occasion">Kipaimara cha watoto wao</h2>
+    <p class="lead"><span data-i18n="lead1">Familia ya</span> <strong data-i18n="parents">Bw. na Bi. Abyudi Kissai</strong> <span data-i18n="lead2">wa Mbezi Mpiji wana furaha kukualika katika</span></p>
+    <h2 class="occasion" data-i18n="occasion">Kipaimara cha watoto wao</h2>
 
     <div class="names">
       <span class="first">Abigail</span>
       <span class="full">Abigail Abyudi Kissai</span>
-      <span class="amp">na</span>
+      <span class="amp" data-i18n="and">na</span>
       <span class="first">Charisa</span>
       <span class="full">Charisa Gadiel Kissai</span>
     </div>
@@ -394,28 +444,28 @@
     <ol class="programme">
       <li>
         <svg class="bloom" viewBox="-12 -12 24 24" style="color:#e56f9a" aria-hidden="true"><use href="#blossom"/></svg>
-        <h2>Ibada</h2>
-        <p class="time">Saa 1:00 asubuhi hadi saa 6:00 mchana</p>
-        <p class="place">Kanisa la KKKT Msakuzi, Mbezi</p>
-        <a class="map" href="https://www.google.com/maps/search/?api=1&query=KKKT+Msakuzi+Mbezi+Dar+es+Salaam" target="_blank" rel="noopener">Fungua ramani</a>
+        <h2 data-i18n="service">Ibada</h2>
+        <p class="time" data-i18n="serviceTime">Saa 1:00 asubuhi hadi saa 6:00 mchana</p>
+        <p class="place" data-i18n="church">Kanisa la KKKT Msakuzi, Mbezi</p>
+        <a class="map" href="https://www.google.com/maps/search/?api=1&query=KKKT+Msakuzi+Mbezi+Dar+es+Salaam" target="_blank" rel="noopener" data-i18n="map">Fungua ramani</a>
       </li>
       <li>
         <svg class="bloom" viewBox="-12 -12 24 24" style="color:#b993e0" aria-hidden="true"><use href="#blossom"/></svg>
-        <h2>Tafrija</h2>
-        <p class="time">Saa 8:00 mchana hadi saa 12:00 jioni</p>
-        <p class="place">Ukumbi wa Elegance (GM Elegance Hotel), Sinza Mori</p>
-        <a class="map" href="https://www.google.com/maps/search/?api=1&query=GM+Elegance+Hotel%2C+Mori+Road%2C+Sinza%2C+Dar+es+Salaam" target="_blank" rel="noopener">Fungua ramani</a>
+        <h2 data-i18n="party">Tafrija</h2>
+        <p class="time" data-i18n="partyTime">Saa 8:00 mchana hadi saa 12:00 jioni</p>
+        <p class="place" data-i18n="hall">Ukumbi wa Elegance (GM Elegance Hotel), Sinza Mori</p>
+        <a class="map" href="https://www.google.com/maps/search/?api=1&query=GM+Elegance+Hotel%2C+Mori+Road%2C+Sinza%2C+Dar+es+Salaam" target="_blank" rel="noopener" data-i18n="map">Fungua ramani</a>
       </li>
     </ol>
 
-    <p class="closing">Kufika kwako ni baraka kwetu.</p>
-    <p class="welcome">Karibu sana</p>
+    <p class="closing" data-i18n="closing">Kufika kwako ni baraka kwetu.</p>
+    <p class="welcome" data-i18n="welcome">Karibu sana</p>
   </article>
 </main>
 
 <button class="music" id="music" type="button" aria-pressed="true">
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 4v11.2A3.5 3.5 0 1 0 11 18V8h7v5.2A3.5 3.5 0 1 0 20 16V4z"/></svg>
-  <span id="musicLabel">Zima muziki</span>
+  <span id="musicLabel" data-i18n="musicOff">Zima muziki</span>
 </button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -434,16 +484,101 @@
   var stage = document.getElementById('stage');
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ====== Maandishi (text): Kiswahili & English ====== */
+  // All translated text lives here. Elements carry data-i18n="key" (their text) or
+  // data-i18n-label="key" (their aria-label). The Swahili in the HTML is only the default
+  // shown before the guest picks a language.
+  var TEXT = {
+    sw: {
+      title: 'Kipaimara cha Abigail na Charisa',
+      desc: 'Mwaliko wa Kipaimara cha Abigail na Charisa Kissai.',
+      open: 'Fungua mwaliko',
+      dear: 'Mpendwa',
+      invited: 'Umealikwa',
+      tap: 'Gusa kufungua',
+      what: 'Kipaimara cha',
+      and: 'na',
+      scroll: 'Telezesha chini',
+      lead1: 'Familia ya',
+      parents: 'Bw. na Bi. Abyudi Kissai',
+      lead2: 'wa Mbezi Mpiji wana furaha kukualika katika',
+      occasion: 'Kipaimara cha watoto wao',
+      service: 'Ibada',
+      serviceTime: 'Saa 1:00 asubuhi hadi saa 6:00 mchana',
+      church: 'Kanisa la KKKT Msakuzi, Mbezi',
+      party: 'Tafrija',
+      partyTime: 'Saa 8:00 mchana hadi saa 12:00 jioni',
+      hall: 'Ukumbi wa Elegance (GM Elegance Hotel), Sinza Mori',
+      map: 'Fungua ramani',
+      closing: 'Kufika kwako ni baraka kwetu.',
+      welcome: 'Karibu sana',
+      musicOff: 'Zima muziki',
+      musicOn: 'Washa muziki',
+      tba: 'Tarehe itatangazwa',
+      days: ['Jumapili', 'Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi'],
+      months: ['Januari', 'Februari', 'Machi', 'Aprili', 'Mei', 'Juni', 'Julai', 'Agosti', 'Septemba', 'Oktoba', 'Novemba', 'Desemba']
+    },
+    en: {
+      title: 'Confirmation of Abigail and Charisa',
+      desc: 'Invitation to the Confirmation of Abigail and Charisa Kissai.',
+      open: 'Open the invitation',
+      dear: 'Dear',
+      invited: 'You\u2019re invited',
+      tap: 'Tap to open',
+      what: 'The Confirmation of',
+      and: 'and',
+      scroll: 'Scroll down',
+      lead1: 'The family of',
+      parents: 'Mr. and Mrs. Abyudi Kissai',
+      lead2: 'of Mbezi Mpiji are delighted to invite you to',
+      occasion: 'the Confirmation of their children',
+      service: 'Church Service',
+      serviceTime: '7:00 a.m. to 12:00 noon',
+      church: 'KKKT Msakuzi Church, Mbezi',
+      party: 'Reception',
+      partyTime: '2:00 p.m. to 6:00 p.m.',
+      hall: 'Elegance Hall (GM Elegance Hotel), Sinza Mori',
+      map: 'Open map',
+      closing: 'Your presence is a blessing to us.',
+      welcome: 'You are most welcome',
+      musicOff: 'Turn music off',
+      musicOn: 'Turn music on',
+      tba: 'Date to be announced',
+      days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    }
+  };
+  var lang = 'sw';
+  function t(key) { return TEXT[lang][key]; }
+
   /* ---- date ---- */
-  if (/^\d{4}-\d{2}-\d{2}$/.test(EVENT_DATE)) {
+  function showDate() {
+    var el = document.getElementById('date');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(EVENT_DATE)) {
+      el.textContent = t('tba');
+      el.classList.add('pending');
+      return;
+    }
     var p = EVENT_DATE.split('-').map(Number);
     var d = new Date(p[0], p[1] - 1, p[2]);
-    var days = ['Jumapili', 'Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi'];
-    var months = ['Januari', 'Februari', 'Machi', 'Aprili', 'Mei', 'Juni', 'Julai', 'Agosti', 'Septemba', 'Oktoba', 'Novemba', 'Desemba'];
-    var el = document.getElementById('date');
-    el.textContent = days[d.getDay()] + ', ' + p[2] + ' ' + months[p[1] - 1] + ' ' + p[0];
+    el.textContent = t('days')[d.getDay()] + ', ' + p[2] + ' ' + t('months')[p[1] - 1] + ' ' + p[0];
     el.classList.remove('pending');
   }
+
+  function setLanguage(code) {
+    lang = TEXT[code] ? code : 'sw';
+    document.documentElement.lang = lang;
+    document.title = t('title');
+    document.querySelector('meta[name="description"]').setAttribute('content', t('desc'));
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-label]').forEach(function (el) {
+      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-label')));
+    });
+    showDate();
+  }
+  showDate();
 
   /* ---- guest name: index.html?kwa=Mama+Neema ---- */
   var guest = (new URLSearchParams(location.search).get('kwa') || '').trim().slice(0, 60);
@@ -574,6 +709,18 @@
   }
   stage.addEventListener('click', function () { open(true); });
 
+  /* ---- language picker: shown first, the envelope unlocks once a language is chosen ---- */
+  var picker = document.getElementById('lang');
+  picker.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-lang]');
+    if (!btn) return;
+    setLanguage(btn.getAttribute('data-lang'));
+    picker.classList.add('done');
+    body.classList.remove('choosing');
+    stage.removeAttribute('inert');
+    stage.focus({ preventScroll: true });
+  });
+
   /* ---- embossed floral paper for the envelope ---- */
   (function () {
     var petal = "<path id='p' d='M0 0C-9-10-8-24 0-30C8-24 9-10 0 0ZM0-5V-21'/>";
@@ -617,7 +764,7 @@
   musicBtn.addEventListener('click', function () {
     var on = player.toggle();
     musicBtn.setAttribute('aria-pressed', String(on));
-    document.getElementById('musicLabel').textContent = on ? 'Zima muziki' : 'Washa muziki';
+    document.getElementById('musicLabel').textContent = t(on ? 'musicOff' : 'musicOn');
   });
 })();
 </script>
